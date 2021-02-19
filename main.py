@@ -14,6 +14,8 @@ class GoogleKeywordScreenshoter:
         self.browser = webdriver.Chrome(ChromeDriverManager().install())
         self.keyword = keyword
         self.screenshot_dir = screenshot_dir
+        self.dir_path = f"{self.screenshot_dir}/{self.keyword}"
+        self.page = 1
 
     def is_dir(self, path):
         # If it doesn't exist make a directory.
@@ -36,21 +38,32 @@ class GoogleKeywordScreenshoter:
         except Exception:
             pass
 
+    def take_screenshot(self):
+        search_results = self.browser.find_elements_by_class_name("g")
+        for index, search_result in enumerate(search_results):
+            search_result.screenshot(f"{self.dir_path}/{self.keyword}x{self.page}x{index}.png")
+
     def run(self):
-        dir_path = f"{self.screenshot_dir}/{self.keyword}"
-        self.is_dir(dir_path)
+        self.is_dir(self.dir_path)
         self.browser.get("https://www.google.com")
         search_bar = self.browser.find_element_by_class_name("gLFyf")
         search_bar.send_keys(self.keyword)
         search_bar.send_keys(Keys.ENTER)
-
         self.remove_shitty()
-
-        search_results = self.browser.find_elements_by_class_name("g")
-        for index, search_result in enumerate(search_results):
-            search_result.screenshot(f"{dir_path}/{self.keyword}x{index}.png")
+        self.take_screenshot()
+        next_addr = self.browser.find_element_by_id("pnnext").get_attribute("href")
+        while next_addr is not None:
+            try:
+                self.page += 1
+                self.browser.get(next_addr)
+                self.take_screenshot()
+                next_addr = self.browser.find_element_by_id("pnnext").get_attribute("href")
+            except Exception:
+                break
 
     def finish(self):
+        file_count = len(os.listdir(self.dir_path))
+        print(f"keyword:{self.keyword} | take {file_count}s screenshot from {self.page} pages")
         self.browser.quit()
 
 
@@ -58,6 +71,6 @@ blackpink_scrapper = GoogleKeywordScreenshoter("blackpink", "screenshot")
 blackpink_scrapper.run()
 blackpink_scrapper.finish()
 
-python_book_scrapper = GoogleKeywordScreenshoter("python book", "screenshot")
-python_book_scrapper.run()
-python_book_scrapper.finish()
+# python_book_scrapper = GoogleKeywordScreenshoter("python book", "screenshot")
+# python_book_scrapper.run()
+# python_book_scrapper.finish()
