@@ -46,6 +46,7 @@ class GoogleKeywordScreenshoter:
     def run(self):
         self.is_dir(self.dir_path)
         self.browser.get("https://www.google.com")
+        self.browser.maximize_window()
         search_bar = self.browser.find_element_by_class_name("gLFyf")
         search_bar.send_keys(self.keyword)
         search_bar.send_keys(Keys.ENTER)
